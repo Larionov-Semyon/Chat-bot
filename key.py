@@ -1,1 +1,1 @@
-telegram_key_api = 000
+telegram_key_api = 00
