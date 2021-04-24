@@ -30,8 +30,8 @@ def StartDatabase(init):
                 name TEXT UNIQUE
         );''')
 
-def uploadReview(conn, nco, region, topic, review):
-    # conn = sqlite3.connect('reviews.sqlite')
+def uploadReview(nco, region, topic, review):
+    conn = sqlite3.connect('reviews.sqlite')
     print(conn)
     cur = conn.cursor()
     cur.execute('''
@@ -58,7 +58,7 @@ def uploadReview(conn, nco, region, topic, review):
     conn.commit()
 
 if __name__ == '__main__':
-    conn = sqlite3.connect('reviews.sqlite')
+    # conn = sqlite3.connect('reviews.sqlite')
 
     nco = input('Укажите НКО, на которую хотите написать отзыв: ')
     region = input('Укажите ваш регион: ')

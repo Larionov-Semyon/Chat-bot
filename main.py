@@ -144,8 +144,8 @@ def save(update: Update, context: CallbackContext):
     user_data = list((context.user_data).values())
 
     # добавить КОД
-    print("Запись в БД - " + user_data)
-    uploadReview(base, user_data[0], user_data[1], user_data[2], user_data[4])
+    print("Запись в БД - " + ' '.join(user_data))
+    uploadReview(user_data[0], user_data[1], user_data[2], user_data[4])
 
     user_data.clear()
     return ConversationHandler.END
