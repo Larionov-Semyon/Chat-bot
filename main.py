@@ -56,19 +56,8 @@ END = ConversationHandler.END
 def start(update: Update, _: CallbackContext) -> None:
     """НАЧАЛО. Выбираем - ищем НКО или делаем отзыв"""
     user = update.effective_user
-    update.message.reply_markdown_v2(
-<<<<<<< HEAD
-        f'Привет, {user.mention_markdown_v2()}\!',
-        '''reply_markup=ForceReply(selective=True),'''
-=======
-        fr'Привет, {user.mention_markdown_v2()}\!',
-        # reply_markup=ForceReply(selective=True),
->>>>>>> 47fa5940adae4fdb5022e06c4e6b99ae20dd9eaa
-    )
-    update.message.reply_text(
-        "Чтобы ты хотел сделать?",
-        reply_markup=markup_1,
-    )
+    update.message.reply_markdown_v2(f'Привет, {user.mention_markdown_v2()}\!',)
+    update.message.reply_text("Чтобы ты хотел сделать?",reply_markup=markup_1,)
 
 
 def help(update: Update, _: CallbackContext) -> None:
@@ -163,7 +152,6 @@ def save(update: Update, context: CallbackContext):
 
 def stop(update: Update, context: CallbackContext):
     update.message.reply_text('Отмена')
-<<<<<<< HEAD
     user_data = context.user_data
     user_data.clear()
 
@@ -172,18 +160,8 @@ def stop(update: Update, context: CallbackContext):
         f'Начнем сначала, {user.mention_markdown_v2()}\.',
         '''reply_markup=ForceReply(selective=True),'''
     )
-    update.message.reply_text(
-        "Чтобы ты хотел сделать?",
-        reply_markup=markup_1,
-    )
-
-    '''update.message.reply_text('Начнем сначала. Что Вы хотите сделать?')'''
+    update.message.reply_text("Чтобы ты хотел сделать?",reply_markup=markup_1,)
     return QUESTION
-    '''return ConversationHandler.END'''
-=======
-    context.user_data.clear()
-    return ConversationHandler.END
->>>>>>> 47fa5940adae4fdb5022e06c4e6b99ae20dd9eaa
 
 
 def search_review(update: Update, context: CallbackContext) -> int:
