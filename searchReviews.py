@@ -4,7 +4,7 @@ cur = conn.cursor()
 # вывод всех отзывов для указанных региона и тематики
 def printAll(region, topic):
     cur.execute('''
-    SELECT NCOs.name, Reviews.review FROM NCOs JOIN Reviews JOIN Regions JOIN Topics ON NCOs.id = Reviews.nco_id AND Regions.id = Reviews.region_id AND Topics.id = Reviews.topic_id WHERE Regions.name = ? AND Topics.name = ? ORDER BY NCOs.name
+    SELECT NCOs.name, Reviews.review FROM NCOs JOIN Reviews JOIN Regions JOIN Cities JOIN Topics ON NCOs.id = Reviews.nco_id AND Regions.id = Reviews.region_id AND Cities.id = Reviews.city_id AND Topics.id = Reviews.topic_id WHERE Regions.name = ? AND Topics.name = ? ORDER BY NCOs.name
     ''', (region, topic) )
     result = cur.fetchall()
 
@@ -17,7 +17,7 @@ def printAll(region, topic):
 # вывод всех НКО для указанных региона и тематики
 def printNCOs(region, topic):
     cur.execute('''
-    SELECT NCOs.name FROM NCOs JOIN Reviews JOIN Regions JOIN Topics ON NCOs.id = Reviews.nco_id AND Regions.id = Reviews.region_id AND Topics.id = Reviews.topic_id WHERE Regions.name = ? AND Topics.name = ?
+    SELECT NCOs.name FROM NCOs JOIN Reviews JOIN Regions JOIN Cities JOIN Topics ON NCOs.id = Reviews.nco_id AND Regions.id = Reviews.region_id AND Cities.id = Reviews.city_id AND Topics.id = Reviews.topic_id WHERE Regions.name = ? AND Topics.name = ?
     ''', (region, topic) )
     result = cur.fetchall()
     lresult = list()
@@ -31,4 +31,4 @@ if __name__ == '__main__':
     g_region = input('Укажите ваш регион: ')
     g_topic = input('Укажите тематику отзыва: ')
 
-printNCOs(g_region, g_topic)
+printAll(g_region, g_topic)

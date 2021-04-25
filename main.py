@@ -5,7 +5,6 @@ from typing import Dict
 from telegram import ForceReply
 from telegram import ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackContext
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 
 from key import telegram_key_api
 
@@ -52,14 +51,12 @@ def start(update: Update, _: CallbackContext) -> None:
     user = update.effective_user
     update.message.reply_markdown_v2(
         fr'Привет, {user.mention_markdown_v2()}\!',
-        reply_markup=ForceReply(selective=True),
+        # reply_markup=ForceReply(selective=True),
     )
     update.message.reply_text(
         "Чтобы ты хотел сделать?",
         reply_markup=markup_1,
     )
-
-    return QUESTION
 
 
 def help(update: Update, _: CallbackContext) -> None:
@@ -141,20 +138,20 @@ def comment(update: Update, context: CallbackContext) -> int:
 
 def save(update: Update, context: CallbackContext):
     update.message.reply_text('Сохранение')
-    user_data = list((context.user_data).values())
+    print("Запись в БД - " + ' '.join(list((context.user_data).values())))
+    uploadReview(context.user_data['Name'],
+                 context.user_data['Region'],
+                 context.user_data['City'],
+                 context.user_data['Theme'],
+                 context.user_data['Comment'])
 
-    # добавить КОД
-    print("Запись в БД - " + ' '.join(user_data))
-    uploadReview(user_data[0], user_data[1], user_data[2], user_data[4])
-
-    user_data.clear()
+    context.user_data.clear()
     return ConversationHandler.END
 
 
 def stop(update: Update, context: CallbackContext):
     update.message.reply_text('Отмена')
-    user_data = context.user_data
-    user_data.clear()
+    context.user_data.clear()
     return ConversationHandler.END
 
 
@@ -207,6 +204,8 @@ def done(update: Update, context: CallbackContext):
         "Поиск в БД по: " f"{facts_to_str(context.user_data)}",
         reply_markup=ReplyKeyboardRemove(),
     )
+
+    start(update, context)
     return ConversationHandler.END
 
 
