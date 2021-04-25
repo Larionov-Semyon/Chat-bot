@@ -19,7 +19,7 @@ base = sqlite3.connect('reviews.sqlite')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-QUESTION, NAME, REGION, CITY, THEME, COMMENT, SAVE = range(7)
+QUESTION, NAME, REGION, CITY, THEME, COMMENT, SAVE, START = range(8)
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
 
@@ -27,6 +27,7 @@ reply_keyboard = [
     ['Оставить отзыв'],
     ['Найти'],
     ['Подробнее...'],
+    ['Сбросить'],
 ]
 markup_1 = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
@@ -40,8 +41,14 @@ reply_keyboard_2 = [
     ['Регион', 'Город'],
     ['Тема', 'Название'],
     ['Поиск'],
+    ['Сбросить']
 ]
 markup_search = ReplyKeyboardMarkup(reply_keyboard_2, one_time_keyboard=True)
+
+reply_keyboard_3 = [
+    ['Сбросить'],
+]
+markup_drop = ReplyKeyboardMarkup(reply_keyboard_3, one_time_keyboard=True)
 
 # Shortcut for ConversationHandler.END
 END = ConversationHandler.END
@@ -51,8 +58,8 @@ def start(update: Update, _: CallbackContext) -> None:
     """НАЧАЛО. Выбираем - ищем НКО или делаем отзыв"""
     user = update.effective_user
     update.message.reply_markdown_v2(
-        fr'Привет, {user.mention_markdown_v2()}\!',
-        reply_markup=ForceReply(selective=True),
+        f'Привет, {user.mention_markdown_v2()}\!',
+        '''reply_markup=ForceReply(selective=True),'''
     )
     update.message.reply_text(
         "Чтобы ты хотел сделать?",
@@ -63,7 +70,7 @@ def start(update: Update, _: CallbackContext) -> None:
 
 
 def help(update: Update, _: CallbackContext) -> None:
-    """ПОмощь"""
+    """Помощь"""
     update.message.reply_text('Помощь!')
 
 
@@ -155,7 +162,20 @@ def stop(update: Update, context: CallbackContext):
     update.message.reply_text('Отмена')
     user_data = context.user_data
     user_data.clear()
-    return ConversationHandler.END
+
+    user = update.effective_user
+    update.message.reply_markdown_v2(
+        f'Начнем сначала, {user.mention_markdown_v2()}\.',
+        '''reply_markup=ForceReply(selective=True),'''
+    )
+    update.message.reply_text(
+        "Чтобы ты хотел сделать?",
+        reply_markup=markup_1,
+    )
+
+    '''update.message.reply_text('Начнем сначала. Что Вы хотите сделать?')'''
+    return QUESTION
+    '''return ConversationHandler.END'''
 
 
 def search_review(update: Update, context: CallbackContext) -> int:
