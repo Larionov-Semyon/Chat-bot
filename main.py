@@ -11,6 +11,7 @@ from key import telegram_key_api
 # БД (убрать позже, изменить)
 import sqlite3
 from getReview import StartDatabase, uploadReview
+from searchReviews import adaptiveSearch
 StartDatabase(os.path.exists('reviews.sqlite'))
 base = sqlite3.connect('reviews.sqlite')
 
@@ -24,9 +25,8 @@ CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
 reply_keyboard = [
     ['Оставить отзыв'],
-    ['Найти'],
+    ['Найти организацию'],
     ['Подробнее...'],
-    ['Сбросить'],
 ]
 markup_1 = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
@@ -39,25 +39,20 @@ markup_review = ReplyKeyboardMarkup(reply_keyboard_1, one_time_keyboard=True)
 reply_keyboard_2 = [
     ['Регион', 'Город'],
     ['Тема', 'Название'],
-    ['Поиск'],
-    ['Сбросить']
+    ['Сброс'],
 ]
 markup_search = ReplyKeyboardMarkup(reply_keyboard_2, one_time_keyboard=True)
-
-reply_keyboard_3 = [
-    ['Сбросить'],
-]
-markup_drop = ReplyKeyboardMarkup(reply_keyboard_3, one_time_keyboard=True)
 
 # Shortcut for ConversationHandler.END
 END = ConversationHandler.END
 
 
-def start(update: Update, _: CallbackContext) -> None:
+def start(update: Update, context: CallbackContext) -> None:
     """НАЧАЛО. Выбираем - ищем НКО или делаем отзыв"""
+    context.user_data.clear()
     user = update.effective_user
-    update.message.reply_markdown_v2(f'Привет, {user.mention_markdown_v2()}\!',)
-    update.message.reply_text("Чтобы ты хотел сделать?",reply_markup=markup_1,)
+    update.message.reply_markdown_v2(f'Здравствуйте, {user.mention_markdown_v2()}\! ' + ' Вас приветсвует помощник НКО\.',)
+    update.message.reply_text("Что Вы хотите сделать?",reply_markup=markup_1,)
 
 
 def help(update: Update, _: CallbackContext) -> None:
@@ -74,18 +69,18 @@ def remember(update, context, category):
 
 
 def review(update: Update, _: CallbackContext) -> None:
-    update.message.reply_text('Название')
+    update.message.reply_text('Введите название организации')
     return NAME
 
 
 def name(update, context):
-    update.message.reply_text('Регион или /skip')
+    update.message.reply_text('Укажите регион или пропустите этот пункт нажав /skip')
     remember(update, context, 'Name')
     return REGION
 
 
 def region(update, context):
-    update.message.reply_text('Город или /skip')
+    update.message.reply_text('Укажите город или пропустите этот пункт нажав /skip')
     remember(update, context, 'Region')
     return CITY
 
@@ -96,7 +91,7 @@ def skip_region(update, context):
 
 
 def city(update, context):
-    update.message.reply_text('Тема или /skip')
+    update.message.reply_text('Укажите тематику организации или пропустите этот пункт нажав /skip')
     remember(update, context, 'City')
     return THEME
 
@@ -108,7 +103,7 @@ def skip_city(update, context):
 
 
 def theme(update, context):
-    update.message.reply_text('Комментарий')
+    update.message.reply_text('Напишите ваш отзыв или оставьте комментарий')
     remember(update, context, 'Theme')
     return COMMENT
 
@@ -130,7 +125,7 @@ def facts_to_str(user_data: Dict[str, str]):
 def comment(update: Update, context: CallbackContext) -> int:
     remember(update, context, 'Comment')
     update.message.reply_text(
-        f"Хотите отправить ваш отзыв ?"
+        f"Хотите отправить ваш отзыв?"
         f"Ваш отзыв:"
         f"{facts_to_str(context.user_data)}", reply_markup=markup_review,
     )
@@ -138,8 +133,9 @@ def comment(update: Update, context: CallbackContext) -> int:
 
 
 def save(update: Update, context: CallbackContext):
-    update.message.reply_text('Сохранение')
-    print("Запись в БД - " + ' '.join(list((context.user_data).values())))
+    update.message.reply_text(f'Ваш отзыв сохранен.'
+                              f' Нажмите  /start')
+    print("Запись отзыва для организации в базу данных - " + ' '.join(list((context.user_data).values())))
     uploadReview(context.user_data['Name'],
                  context.user_data['Region'],
                  context.user_data['City'],
@@ -147,7 +143,7 @@ def save(update: Update, context: CallbackContext):
                  context.user_data['Comment'])
 
     context.user_data.clear()
-    return ConversationHandler.END
+    return END
 
 
 def stop(update: Update, context: CallbackContext):
@@ -160,12 +156,11 @@ def stop(update: Update, context: CallbackContext):
         f'Начнем сначала, {user.mention_markdown_v2()}\.',
         '''reply_markup=ForceReply(selective=True),'''
     )
-    update.message.reply_text("Чтобы ты хотел сделать?",reply_markup=markup_1,)
-    return QUESTION
-
+    update.message.reply_text("Чтобы Вы хотите сделать?",reply_markup=markup_1,)
+    return END
 
 def search_review(update: Update, context: CallbackContext) -> int:
-    reply_text = "Давайте искать... Выберете, то с чего начнете свой поиск"
+    reply_text = "Давайте искать... Выберете, с чего хотите начать свой поиск"
     update.message.reply_text(reply_text, reply_markup=markup_search)
 
     return CHOOSING
@@ -176,8 +171,8 @@ def regular_choice(update: Update, context: CallbackContext) -> int:
     context.user_data['choice'] = text
     if context.user_data.get(text):
         reply_text = (
-            f"Мы ждем, что вы введете {text}"
-            f"Вы вводили ранее: {context.user_data[text]}"
+            f"Ведите {text}" + '\n'
+            f"Ранее вы ввели: {context.user_data[text]}"
         )
     else:
         reply_text = f"Мы ждем, что вы введете {text}"
@@ -190,12 +185,17 @@ def received_information(update: Update, context: CallbackContext) -> int:
     remember(update, context, context.user_data['choice'])
     del context.user_data['choice']
 
+    string = adaptiveSearch(context.user_data.get("НАЗВАНИЕ", ''),
+                   context.user_data.get("РЕГИОН", ''),
+                   context.user_data.get("ГОРОД", ''),
+                   context.user_data.get("ТЕМА", ''),)
     update.message.reply_text(
-        f"Показываем список (отсортированный) по введенным данным:"
-        f"{facts_to_str(context.user_data)}",
+        f"Ниже приведен отсортированный список всех НКО по указанным параметрам:"
+        f"{facts_to_str(context.user_data)}"
+        f"" + string,
         reply_markup=markup_search,
     )
-
+    print(context.user_data.get('НАЗВАНИЕ', ''))
     return CHOOSING
 
 
@@ -209,13 +209,16 @@ def done(update: Update, context: CallbackContext):
     if 'choice' in context.user_data:
         del context.user_data['choice']
 
+    string = adaptiveSearch(context.user_data.get("НАЗВАНИЕ", ''),
+                   context.user_data.get("РЕГИОН", ''),
+                   context.user_data.get("ГОРОД", ''),
+                   context.user_data.get("ТЕМА", ''),)
+
     update.message.reply_text(
-        "Поиск в БД по: " f"{facts_to_str(context.user_data)}",
+        "Поиск в БД по: " f"{facts_to_str(context.user_data)}" f"" + string,
         reply_markup=ReplyKeyboardRemove(),
     )
-
-    start(update, context)
-    return ConversationHandler.END
+    return END
 
 
 def main():
@@ -227,6 +230,8 @@ def main():
 
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', help)
+    help_handler_1 = MessageHandler(Filters.regex('Подробнее...'), help)
+    # help_handler = MessageHandler(Filters.regex('Подробнее...'), help)
 
     review_conv_handler = ConversationHandler(
         entry_points=[MessageHandler(Filters.regex('^Оставить отзыв$'), review)],
@@ -239,11 +244,11 @@ def main():
             SAVE: [MessageHandler(Filters.regex('^Отправить$'), save),
                    MessageHandler(Filters.regex('^Сбросить$'), stop)],
         },
-        fallbacks=[CommandHandler('stop', stop)],
+        fallbacks=[CommandHandler('stop', stop), MessageHandler(Filters.regex('^Подробнее...$'), help)],
     )
 
     search_conv_handler = ConversationHandler(
-        entry_points=[MessageHandler(Filters.regex('^Найти$'), search_review)],
+        entry_points=[MessageHandler(Filters.regex('^Найти организацию$'), search_review)],
         states={
             CHOOSING: [MessageHandler(Filters.regex('^(Регион|Город|Тема|Название)$'), regular_choice)],
             TYPING_CHOICE: [
@@ -257,9 +262,9 @@ def main():
                 )
             ],
         },
-        fallbacks=[CommandHandler('stop', stop), MessageHandler(Filters.regex('^Поиск$'), done)],
+        fallbacks=[CommandHandler('stop', stop), MessageHandler(Filters.regex('^Сброс$'), stop), MessageHandler(Filters.regex('^Подробнее...$'), help)],
     )
-
+    dispatcher.add_handler(help_handler_1)
     dispatcher.add_handler(review_conv_handler)
     dispatcher.add_handler(search_conv_handler)
     dispatcher.add_handler(start_handler)

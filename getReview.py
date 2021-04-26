@@ -1,40 +1,40 @@
 import sqlite3
 
 def StartDatabase(init):
-    if(init == '+' or init == 'да' or init == False):
+    if(init == False):
         conn = sqlite3.connect('reviews.sqlite')
         cur = conn.cursor()
         print('Создание новой БД')
         cur.executescript('''
-            DROP TABLE IF EXISTS NCOs;
-            DROP TABLE IF EXISTS Reviews;
-            DROP TABLE IF EXISTS Regions;
-            DROP TABLE IF EXISTS Cities;
-            DROP TABLE IF EXISTS Topics;
-            CREATE TABLE NCOs (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-                name TEXT UNIQUE
-            );
-            CREATE TABLE Reviews (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-                nco_id INTEGER,
-                region_id INTEGER,
-                city_id INTEGER,
-                topic_id INTEGER,
-                review TEXT NOT NULL
-            );
-            CREATE TABLE Regions (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-                name TEXT UNIQUE
-            );
-            CREATE TABLE Cities (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-                name TEXT UNIQUE
-            );
-            CREATE TABLE Topics (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-                name TEXT UNIQUE
-            );''')
+        DROP TABLE IF EXISTS NCOs;
+        DROP TABLE IF EXISTS Reviews;
+        DROP TABLE IF EXISTS Regions;
+        DROP TABLE IF EXISTS Cities;
+        DROP TABLE IF EXISTS Topics;
+        CREATE TABLE NCOs (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            name TEXT UNIQUE
+        );
+        CREATE TABLE Reviews (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        nco_id INTEGER,
+        region_id INTEGER,
+        city_id INTEGER,
+        topic_id INTEGER,
+        review TEXT NOT NULL
+        );
+        CREATE TABLE Regions (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            name TEXT UNIQUE
+        );
+        CREATE TABLE Cities (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            name TEXT UNIQUE
+        );
+        CREATE TABLE Topics (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            name TEXT UNIQUE
+        );''')
 
 def uploadReview(nco, region, city, topic, review):
     conn = sqlite3.connect('reviews.sqlite')
@@ -77,4 +77,4 @@ if __name__ == '__main__':
     topic = input('Укажите тематику отзыва: ')
     review = input('Ваш отзыв: ')
     init = input('Создать базу данны1х заново? ')
-    uploadReview(conn, nco, region, topic, review)
+    uploadReview(nco, region, topic, review)
